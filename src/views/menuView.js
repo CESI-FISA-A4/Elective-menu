@@ -102,5 +102,25 @@ module.exports = {
         });
         
         return `menu ${menuId} updated`;
+    },
+    // this function is similar to update menu but allow only update in productIdList
+    updateProductList: async(req, res) => {
+        const { menuId, productIdList } = req.body;
+
+        const menuObjectId = new mongoose.Types.ObjectId(menuId);
+        
+        for(let i = 0; i < productIdList.length; i++) {
+            const objId = new mongoose.Types.ObjectId(productIdList[i]);
+            const product = await Product.exists({_id: objId});
+            if(!product) return `${objId} doesn't exist`; 
+            productObjectIdList.push(objId);
+        }
+
+        await Menu.findOneAndUpdate({
+            _id: menuObjectId
+        }, {
+            productIdList: productObjectIdList
+        });
+        return `productIdList in menu ${menuId} updated`;
     }
 }
