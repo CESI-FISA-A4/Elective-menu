@@ -13,6 +13,8 @@ initDatabase();
 
 
 /** -------------------------------------------Account------------------------------------------------- */
+fastify.register(menuRoutes, { prefix: '/api/menu' });
+fastify.register(productRoutes, { prefix: '/api/product' });
 
 /**--------------------------------------------Start server--------------------------------------------- */
 const PORT = process.env.PORT || 3000;
