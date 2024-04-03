@@ -69,5 +69,38 @@ module.exports = {
         await Article.findByIdAndDelete(menu.articleId);
         await Menu.findByIdAndDelete(id);
         return `menu ${id} deleted`;
+    },
+    updateMenu: async(req, res) => {
+        const { articleId, menuId, name, price, description, restaurantId, imageUrl, productIdList } = req.body;
+        const articleObjectId = new mongoose.Types.ObjectId(articleId);
+        const menuObjectId = new mongoose.Types.ObjectId(menuId);
+        
+        var productObjectIdList = [];
+        // check if productId exist and convert it in ObjectId
+        for(let i = 0; i < productIdList.length; i++) {
+            const objId = new mongoose.Types.ObjectId(productIdList[i]);
+            const product = await Product.exists({_id: objId});
+            if(!product) return `${objId} doesn't exist`; 
+            productObjectIdList.push(objId);
+        }
+
+        await Article.findOneAndUpdate({
+            _id: articleObjectId
+        }, {
+            name: name, 
+            price: price, 
+            description: description, 
+            restaurantId: restaurantId, 
+            imageUrl: imageUrl
+        });
+
+        await Menu.findOneAndUpdate({
+            _id: menuObjectId
+        }, {
+            articleId: articleObjectId, 
+            productIdList: productObjectIdList
+        });
+        
+        return `menu ${menuId} updated`;
     }
 }

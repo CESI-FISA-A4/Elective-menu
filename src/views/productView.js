@@ -76,14 +76,14 @@ module.exports = {
             imageUrl: imageUrl
         });
 
-        await Product.updateOne({
+        await Product.findOneAndUpdate({
             _id: productObjectId
         }, {
             articleId: articleObjectId, 
             allergenList: allergenList, 
             ingredientList: ingredientList 
         });
-5
+        
         return `product ${productId} updated`;
     }
 }
