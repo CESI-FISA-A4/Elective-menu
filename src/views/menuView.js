@@ -1,6 +1,6 @@
 const { Menu } = require("../models/Menu");
 const { Article } = require("../models/Article");
-var mongoose = require("mongoose");
+const { mongoose, isValidObjectId } = require("mongoose");
 const { Product } = require("../models/Product");
 
 module.exports = {
@@ -23,7 +23,9 @@ module.exports = {
         return elements;
     },
     getMenuById: async(req, res) => {
-        const menuId = req.params.id;
+        const { menuId } = req.params.id;
+        if (!isValidObjectId(menuId)) return errors.invalidId;
+
         const menu = await Menu.findById(menuId);
         const article = await Article.findById(menu.articleId);
         var element  = { 
@@ -39,53 +41,52 @@ module.exports = {
         return element;
     },
     createMenu: async(req, res) => {
-        const { Name, Price, Description, RestaurantId, ImageUrl, productIdList } = req.body;
-        var productObjectIdList = [];
+        const { name, price, description, restaurantId, imageUrl, productIdList } = req.body;
+        if (!isValidObjectId(restaurantId)) return errors.invalidId;
+
         // check if productId exist and convert it in ObjectId
         for(let i = 0; i < productIdList.length; i++) {
-            const objId = new mongoose.Types.ObjectId(productIdList[i]);
-            const product = await Product.exists({_id: objId});
-            if(!product) return `${objId} doesn't exist`; 
-            productObjectIdList.push(objId);
+            if (!isValidObjectId(productIdList[i])) return errors.invalidId;
+            const product = await Product.exists({_id: productIdList[i]});
+            if(!product) return `${productIdList[i]} doesn't exist`; 
         }
-        const RestaurantObjId = new mongoose.Types.ObjectId(RestaurantId);
-        const resultArticle = await Article.create({ 
-            name: Name, 
-            price: Price, 
-            description: Description, 
-            restaurantId: RestaurantObjId, 
-            imageUrl: ImageUrl 
+        
+        const article = await Article.create({ 
+            name: name, 
+            price: price, 
+            description: description, 
+            restaurantId: restaurantId, 
+            imageUrl: imageUrl 
         });
-        const ArticleId = resultArticle.id;
+
         const resultMenu = await Menu.create({ 
-            articleId: ArticleId, 
+            articleId: article.id, 
             productIdList: productObjectIdList 
         })
+
         return `menu ${resultMenu.id} created`;
     },
     deleteMenu: async(req, res) => {
-        const { id } = req.body;
-        const menu = await Menu.findById(id);
+        const { menuId } = req.body;
+        if (!isValidObjectId(menuId)) return errors.invalidId;
+        const menu = await Menu.findByIdAndDelete(menuId);
         await Article.findByIdAndDelete(menu.articleId);
-        await Menu.findByIdAndDelete(id);
         return `menu ${id} deleted`;
     },
     updateMenu: async(req, res) => {
-        const { articleId, menuId, name, price, description, restaurantId, imageUrl, productIdList } = req.body;
-        const articleObjectId = new mongoose.Types.ObjectId(articleId);
-        const menuObjectId = new mongoose.Types.ObjectId(menuId);
+        const { menuId, name, price, description, restaurantId, imageUrl, productIdList } = req.body;
+        if (!isValidObjectId(menuId)) return errors.invalidId;
+        if (!isValidObjectId(articleId)) return errors.invalidId;
         
-        var productObjectIdList = [];
         // check if productId exist and convert it in ObjectId
         for(let i = 0; i < productIdList.length; i++) {
-            const objId = new mongoose.Types.ObjectId(productIdList[i]);
-            const product = await Product.exists({_id: objId});
+            if (!isValidObjectId(productIdList[i])) return errors.invalidId;
+            const product = await Product.exists({_id: productIdList[i]});
             if(!product) return `${objId} doesn't exist`; 
-            productObjectIdList.push(objId);
         }
 
         await Article.findOneAndUpdate({
-            _id: articleObjectId
+            _id: articleId
         }, {
             name: name, 
             price: price, 
@@ -95,10 +96,10 @@ module.exports = {
         });
 
         await Menu.findOneAndUpdate({
-            _id: menuObjectId
+            _id: menuId
         }, {
             articleId: articleObjectId, 
-            productIdList: productObjectIdList
+            productIdList: productIdList
         });
         
         return `menu ${menuId} updated`;
@@ -106,14 +107,12 @@ module.exports = {
     // this function is similar to update menu but allow only update in productIdList
     updateProductList: async(req, res) => {
         const { menuId, productIdList } = req.body;
-
-        const menuObjectId = new mongoose.Types.ObjectId(menuId);
+        if (!isValidObjectId(menuId)) return errors.invalidId;
         
         for(let i = 0; i < productIdList.length; i++) {
-            const objId = new mongoose.Types.ObjectId(productIdList[i]);
-            const product = await Product.exists({_id: objId});
-            if(!product) return `${objId} doesn't exist`; 
-            productObjectIdList.push(objId);
+            if (!isValidObjectId(productIdList[i])) return errors.invalidId;
+            const product = await Product.exists({_id: productIdList[i]});
+            if(!product) return `${productIdList[i]} doesn't exist`; 
         }
 
         await Menu.findOneAndUpdate({

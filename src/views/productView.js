@@ -1,7 +1,7 @@
 const { Article } = require("../models/Article");
 const { Menu } = require("../models/Menu");
 const { Product } = require("../models/Product");
-var mongoose = require("mongoose");
+const { mongoose, isValidObjectId } = require("mongoose");
 
 module.exports = {    
     getAllProduct: async(req, res) => {
@@ -24,7 +24,9 @@ module.exports = {
         return elements;
     },
     getProductById: async(req, res) => {
-        const productId = req.params.id;
+        const {productId } = req.params.id;
+        if (!isValidObjectId(productId)) return errors.invalidId;
+
         const product = await Product.findById(productId);
         const article = await Article.findById(product.articleId);
         var element  = { 
@@ -42,16 +44,17 @@ module.exports = {
     },
     createProduct: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
-        const restaurantObjId = new mongoose.Types.ObjectId(restaurantId);
-        const article = await Article.create({ name: name, price: price, description: description, restaurantId: restaurantObjId, imageUrl: imageUrl });
-        const articleId = article.id;
-        const resultProduct = await Product.create({ articleId: articleId, allergenList, ingredientList });
+        if (!isValidObjectId(restaurantId)) return errors.invalidId;
+
+        const article = await Article.create({ name: name, price: price, description: description, restaurantId: restaurantId, imageUrl: imageUrl });
+        const resultProduct = await Product.create({ articleId: article.id, allergenList, ingredientList });
         return `product ${resultProduct.id} created`;
     },
     deleteProduct: async(req, res) => {
         const { productId } = req.body;
-        
-        // delete the product 
+        if (!isValidObjectId(productId)) return errors.invalidId;
+
+        // delete the product
         const product = await Product.findById(productId);
         await Article.findByIdAndDelete(product.articleId);
         await Product.findByIdAndDelete(productId);
@@ -62,12 +65,19 @@ module.exports = {
         return `product ${productId} deleted`;
     },
     updateProduct: async(req, res) => {
-        const { articleId, productId, name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
-        const articleObjectId = new mongoose.Types.ObjectId(articleId);
-        const productObjectId = new mongoose.Types.ObjectId(productId);
-        
+        const { productId, name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
+        if (!isValidObjectId(productId)) return errors.invalidId;
+        if (!isValidObjectId(restaurantId)) return errors.invalidId;
+
+        const product = await Product.findOneAndUpdate({
+            _id: productId
+        }, {
+            allergenList: allergenList, 
+            ingredientList: ingredientList 
+        });
+
         await Article.findOneAndUpdate({
-            _id: articleObjectId
+            _id: product.articleId
         }, {
             name: name, 
             price: price, 
@@ -76,14 +86,6 @@ module.exports = {
             imageUrl: imageUrl
         });
 
-        await Product.findOneAndUpdate({
-            _id: productObjectId
-        }, {
-            articleId: articleObjectId, 
-            allergenList: allergenList, 
-            ingredientList: ingredientList 
-        });
-        
         return `product ${productId} updated`;
     }
 }
