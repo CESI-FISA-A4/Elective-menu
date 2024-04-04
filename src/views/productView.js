@@ -3,6 +3,19 @@ const { Menu } = require("../models/Menu");
 const { Product } = require("../models/Product");
 const { mongoose, isValidObjectId } = require("mongoose");
 
+const errors = {
+    invalidId: (() => {
+      const err = Error("Invalid Id format");
+      err.statusCode = 400;
+      return err;
+    })(),
+    missingRequiredParams: (() => {
+      const err = Error("Not all required parameters filled");
+      err.statusCode = 400;
+      return err;
+    })(),
+  }
+
 module.exports = {    
     getAllProduct: async(req, res) => {
         var elements = [];
@@ -41,6 +54,30 @@ module.exports = {
             ingredientList: product.ingredientList 
         }
         return element;
+    },
+    getProductByRestaurantId: async(req, res) => {
+        const { restaurantId } = req.params;
+        if (!isValidObjectId(restaurantId)) return errors.invalidId;
+
+        var elements = [];
+        const articles = await Article.find({restaurantId: restaurantId});
+        for(let i = 0; i < articles.length; i++) {
+            const product = await Product.findOne({articleId: articles[i].id});
+            if(product) {
+                elements.push({
+                    articleId: articles[i].id, 
+                    productId: product.id, 
+                    name: articles[i].name, 
+                    price: articles[i].price, 
+                    description: articles[i].description, 
+                    restaurantId: articles[i].restaurantId, 
+                    imageUrl: articles[i].imageUrl, 
+                    allergenList: product.allergenList, 
+                    ingredientList: product.ingredientList 
+                })
+            }
+        }
+        return elements;
     },
     createProduct: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
