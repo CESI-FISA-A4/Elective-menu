@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const productModel = new mongoose.Schema({
-  articleId: mongoose.Schema.Types.ObjectId,
+  articleId: mongoose.Schema.ObjectId,
   allergenList: [String],
   ingredientList: [String]
 });

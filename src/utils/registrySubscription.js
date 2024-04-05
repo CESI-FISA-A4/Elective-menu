@@ -15,10 +15,10 @@ module.exports = {
                     entrypointUrl: "/api/articles",
                     redirectUrl: "/api/articles",
                     routeProtections: [
-                        { methods: ["POST"], route: "/menu", roles: ["restaurantOwner", "admin"] },
-                        { methods: ["DELETE", "PUT", "PATCH"], route: "/menu/:menuId", roles: ["restaurantOwner", "admin"] },
+                        { methods: ["POST"], route: "/menus", roles: ["restaurantOwner", "admin"] },
+                        { methods: ["DELETE", "PUT", "PATCH"], route: "/menus/:menuId", roles: ["restaurantOwner", "admin"] },
                         { methods: ["POST"], route: "/products", roles: ["restaurantOwner", "admin"] },
-                        { methods: ["DELETE", "PUT"], route: "/products/:productId", roles: ["restaurantOwner", "admin"] },
+                        { methods: ["DELETE", "PUT"], route: "/products/:productId", roles: ["restaurantOwner", "admin"] }
                     ]
                 }
             });

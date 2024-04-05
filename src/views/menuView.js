@@ -14,11 +14,16 @@ const errors = {
       err.statusCode = 400;
       return err;
     })(),
+    idNotFound: (() => {
+        const err = Error("Id not found");
+        err.statusCode = 404;
+        return err;
+    })(),
   }
 
 module.exports = {
     getAllMenus: async(req, res) => {
-        var elements = [];
+        let elements = [];
         const menus = await Menu.find();
         for(let i = 0; i < menus.length; i++) {
             const article = await Article.findById(menus[i].articleId);
@@ -40,24 +45,27 @@ module.exports = {
         if (!isValidObjectId(menuId)) return errors.invalidId;
 
         const menu = await Menu.findById(menuId);
-        const article = await Article.findById(menu.articleId);
-        var element  = { 
-            articleId: article.id, 
-            menuId: menu.id, 
-            name: article.name, 
-            price: article.price, 
-            description: article.description, 
-            restaurantId: article.restaurantId, 
-            imageUrl: article.imageUrl, 
-            productIdList: menu.productIdList
+        if(menu) {
+            const article = await Article.findById(menu.articleId);
+            let element  = { 
+                articleId: article.id, 
+                menuId: menu.id, 
+                name: article.name, 
+                price: article.price, 
+                description: article.description, 
+                restaurantId: article.restaurantId, 
+                imageUrl: article.imageUrl, 
+                productIdList: menu.productIdList
+            }
+            return element;
         }
-        return element;
+        else return errors.idNotFound;
     },
     getMenuByRestaurantId: async(req, res) => {
         const { restaurantId } = req.params;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
 
-        var elements = [];
+        let elements = [];
         const articles = await Article.find({restaurantId: restaurantId});
         for(let i = 0; i < articles.length; i++) {
             const menu = await Menu.findOne({articleId: articles[i].id});
@@ -72,14 +80,15 @@ module.exports = {
                     imageUrl: articles[i].imageUrl, 
                     productIdList: menu.productIdList
                 })
+                return elements;
             }
+            else return errors.idNotFound;
         }
-        return elements;
     },
     getMenuByName: async(req, res) => {
         const { menuName } = req.params;
 
-        var elements = [];
+        let elements = [];
         const articles = await Article.find({name: { '$regex' : menuName, '$options' : 'i' }});
         for(let i = 0; i < articles.length; i++) {
             const menu = await Menu.findOne({articleId: articles[i].id});
@@ -94,9 +103,10 @@ module.exports = {
                     imageUrl: articles[i].imageUrl, 
                     productIdList: menu.productIdList
                 })
+                return elements;
             }
+            else return errors.idNotFound;
         }
-        return elements;
     },
     createMenu: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, productIdList } = req.body;
@@ -119,7 +129,7 @@ module.exports = {
 
         const resultMenu = await Menu.create({ 
             articleId: article.id, 
-            productIdList: productObjectIdList 
+            productIdList: productIdList 
         })
 
         return `menu ${resultMenu.id} created`;
@@ -127,9 +137,13 @@ module.exports = {
     deleteMenu: async(req, res) => {
         const { menuId } = req.params;
         if (!isValidObjectId(menuId)) return errors.invalidId;
+        
         const menu = await Menu.findByIdAndDelete(menuId);
-        await Article.findByIdAndDelete(menu.articleId);
-        return `menu ${id} deleted`;
+        if(menu) {
+            await Article.findByIdAndDelete(menu.articleId);
+        }
+        else return errors.idNotFound;
+        return `menu ${menuId} deleted`;
     },
     updateMenu: async(req, res) => {
         const { menuId } = req.params;
@@ -148,16 +162,18 @@ module.exports = {
         }, {
             productIdList: productIdList
         });
-
-        await Article.findOneAndUpdate({
-            _id: menu.articleId
-        }, {
-            name: name, 
-            price: price, 
-            description: description, 
-            restaurantId: restaurantId, 
-            imageUrl: imageUrl
-        });
+        if(menu) {
+            await Article.findOneAndUpdate({
+                _id: menu.articleId
+            }, {
+                name: name, 
+                price: price, 
+                description: description, 
+                restaurantId: restaurantId, 
+                imageUrl: imageUrl
+            });
+        }
+        else return idNotFound;
 
         return `menu ${menuId} updated`;
     },
@@ -173,11 +189,13 @@ module.exports = {
             if(!product) return `${productIdList[i]} doesn't exist`; 
         }
 
-        await Menu.findOneAndUpdate({
-            _id: menuObjectId
+        const menu = await Menu.findOneAndUpdate({
+            _id: menuId
         }, {
-            productIdList: productObjectIdList
+            productIdList: productIdList
         });
-        return `productIdList in menu ${menuId} updated`;
+
+        if(menu) return `productIdList in menu ${menuId} updated`;
+        else return errors.idNotFound;
     }
 }

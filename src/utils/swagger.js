@@ -3,7 +3,7 @@ module.exports = {
     await fastify.register(require('@fastify/swagger'))
 
     await fastify.register(require('@fastify/swagger-ui'), {
-      routePrefix: '/swagger/Articles',
+      routePrefix: '/swagger/articles',
       uiConfig: {
         docExpansion: 'full',
         deepLinking: false

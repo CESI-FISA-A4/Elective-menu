@@ -4,7 +4,7 @@ const articleModel = new mongoose.Schema({
   name: String,
   price: Number,
   description: String,
-  restaurantId:	mongoose.Schema.Types.ObjectId,
+  restaurantId:	mongoose.Schema.ObjectId,
   imageUrl: String
 });
 

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const menuModel = new mongoose.Schema({
-  articleId: mongoose.Schema.Types.ObjectId,
+  articleId: mongoose.Schema.ObjectId,
   productIdList: [String]
 });
 
