@@ -1,12 +1,14 @@
-const { getAllMenus, getMenuById, createMenu, deleteMenu, updateMenu, updateProductList, getMenuByRestaurantId } = require('../views/menuView');
+const { schemaGetAllMenu, schemaGetMenuById, schemaGetMenuByRestaurantId, schemaGetMenuByName, schemaCreateMenu, schemaDeleteMenu, schemaUpdateMenu, schemaUpdateProductList } = require('../utils/swagger.schema');
+const { getAllMenus, getMenuById, createMenu, deleteMenu, updateMenu, updateProductList, getMenuByRestaurantId, getMenuByName } = require('../views/menuView');
 const menuRoutes = function(instance, opts, next) {
-    instance.get('/', getAllMenus);
-    instance.get('/:id', getMenuById);
-    instance.get('/restaurant/:restaurantId', getMenuByRestaurantId);
-    instance.post('/create', createMenu);
-    instance.post('/delete', deleteMenu);
-    instance.post('/update', updateMenu);
-    instance.post('/updateProduct', updateProductList);
+    instance.get('/', schemaGetAllMenu, getAllMenus);
+    instance.get('/:menuId', schemaGetMenuById, getMenuById);
+    instance.get('/restaurant/:restaurantId', schemaGetMenuByRestaurantId, getMenuByRestaurantId);
+    instance.get('/name/:menuName', schemaGetMenuByName, getMenuByName);
+    instance.post('/', schemaCreateMenu, createMenu);
+    instance.delete('/:menuId', schemaDeleteMenu, deleteMenu);
+    instance.put('/:menuId', schemaUpdateMenu, updateMenu);
+    instance.patch('/:menuId', schemaUpdateProductList, updateProductList);
     next();
 };
 

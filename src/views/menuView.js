@@ -76,6 +76,28 @@ module.exports = {
         }
         return elements;
     },
+    getMenuByName: async(req, res) => {
+        const { menuName } = req.params;
+
+        var elements = [];
+        const articles = await Article.find({name: { '$regex' : menuName, '$options' : 'i' }});
+        for(let i = 0; i < articles.length; i++) {
+            const menu = await Menu.findOne({articleId: articles[i].id});
+            if(menu) {
+                elements.push({
+                    articleId: articles[i].id, 
+                    menuId: menu.id, 
+                    name: articles[i].name, 
+                    price: articles[i].price, 
+                    description: articles[i].description, 
+                    restaurantId: articles[i].restaurantId, 
+                    imageUrl: articles[i].imageUrl, 
+                    productIdList: menu.productIdList
+                })
+            }
+        }
+        return elements;
+    },
     createMenu: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, productIdList } = req.body;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
@@ -103,14 +125,15 @@ module.exports = {
         return `menu ${resultMenu.id} created`;
     },
     deleteMenu: async(req, res) => {
-        const { menuId } = req.body;
+        const { menuId } = req.params;
         if (!isValidObjectId(menuId)) return errors.invalidId;
         const menu = await Menu.findByIdAndDelete(menuId);
         await Article.findByIdAndDelete(menu.articleId);
         return `menu ${id} deleted`;
     },
     updateMenu: async(req, res) => {
-        const { menuId, name, price, description, restaurantId, imageUrl, productIdList } = req.body;
+        const { menuId } = req.params;
+        const { name, price, description, restaurantId, imageUrl, productIdList } = req.body;
         if (!isValidObjectId(menuId)) return errors.invalidId;
         
         // check if productId exist and convert it in ObjectId
@@ -140,7 +163,8 @@ module.exports = {
     },
     // this function is similar to update menu but allow only update in productIdList
     updateProductList: async(req, res) => {
-        const { menuId, productIdList } = req.body;
+        const { menuId } = req.params;
+        const { productIdList } = req.body;
         if (!isValidObjectId(menuId)) return errors.invalidId;
         
         for(let i = 0; i < productIdList.length; i++) {

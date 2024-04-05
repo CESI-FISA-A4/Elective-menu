@@ -37,7 +37,7 @@ module.exports = {
         return elements;
     },
     getProductById: async(req, res) => {
-        const {productId } = req.params.id;
+        const { productId } = req.params;
         if (!isValidObjectId(productId)) return errors.invalidId;
 
         const product = await Product.findById(productId);
@@ -79,6 +79,29 @@ module.exports = {
         }
         return elements;
     },
+    getProductByName: async(req, res) => {
+        const { productName } = req.params;
+
+        var elements = [];
+        const articles = await Article.find({name: { '$regex' : productName, '$options' : 'i' }});
+        for(let i = 0; i < articles.length; i++) {
+            const product = await Product.findOne({articleId: articles[i].id});
+            if(product) {
+                elements.push({
+                    articleId: articles[i].id, 
+                    productId: product.id, 
+                    name: articles[i].name, 
+                    price: articles[i].price, 
+                    description: articles[i].description, 
+                    restaurantId: articles[i].restaurantId, 
+                    imageUrl: articles[i].imageUrl, 
+                    allergenList: product.allergenList, 
+                    ingredientList: product.ingredientList 
+                })
+            }
+        }
+        return elements;
+    },
     createProduct: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
@@ -88,7 +111,7 @@ module.exports = {
         return `product ${resultProduct.id} created`;
     },
     deleteProduct: async(req, res) => {
-        const { productId } = req.body;
+        const { productId } = req.params;
         if (!isValidObjectId(productId)) return errors.invalidId;
 
         // delete the product
@@ -102,7 +125,8 @@ module.exports = {
         return `product ${productId} deleted`;
     },
     updateProduct: async(req, res) => {
-        const { productId, name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
+        const { productId } = req.params;
+        const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
         if (!isValidObjectId(productId)) return errors.invalidId;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
 

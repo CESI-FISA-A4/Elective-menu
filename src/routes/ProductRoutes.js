@@ -1,11 +1,15 @@
-const { getProductById, getAllProduct, createProduct, deleteProduct, updateProduct, getProductByRestaurantId } = require('../views/productView')
+const { getProductById, getAllProduct, createProduct, deleteProduct, updateProduct, getProductByRestaurantId, getProductByName } = require('../views/productView')
+
+const { schemaGetAllProduct, schemaGetProductById, schemaGetProductByRestaurantId, schemaGetProductByName, schemaCreateMenu, schemaCreateProduct, schemaUpdateProduct, schemaDeleteProduct } = require('../utils/swagger.schema');
+
 const productRoutes = function(instance, opts, next) {
-  instance.get('/', getAllProduct);
-  instance.get('/:id', getProductById);
-  instance.get('/restaurant/:restaurantId', getProductByRestaurantId);
-  instance.post('/create', createProduct);
-  instance.post('/delete', deleteProduct);
-  instance.post('/update', updateProduct);
+  instance.get('/', schemaGetAllProduct, getAllProduct);
+  instance.get('/:productId', schemaGetProductById, getProductById);
+  instance.get('/restaurant/:restaurantId', schemaGetProductByRestaurantId, getProductByRestaurantId);
+  instance.get('/name/:productName', schemaGetProductByName, getProductByName);
+  instance.post('/', schemaCreateProduct, createProduct);
+  instance.delete('/:productId', schemaDeleteProduct, deleteProduct);
+  instance.put('/:productId', schemaUpdateProduct,updateProduct);
     next();
 };
 
