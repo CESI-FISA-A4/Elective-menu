@@ -4,8 +4,8 @@ const productProperties = {
   description: { type: "string" },
   restaurantId: {type: "string"},
   imageUrl: {type: "string"},
-  allergenList: {type: "array"},
-  ingredientList: {type: "array"}
+  allergenList: { type: "array", items: { type: "string" } },
+  ingredientList: { type: "array", items: { type: "string" } }
 }
 
 const menuProperties = {
@@ -14,7 +14,7 @@ const menuProperties = {
   description: { type: "string" },
   restaurantId: {type: "string"},
   imageUrl: {type: "string"},
-  productIdList: {type: "array"}
+  productIdList: { type: "array", items: { type: "string" } }
 }
 
 module.exports = {
@@ -224,7 +224,7 @@ module.exports = {
       body: {
         type: 'object',
         required: ["productIdList"],
-        properties: {productIdList: {type: 'array'}}
+        properties: {productIdList: { type: "array", items: { type: "string" } }}
       }
     }
   }
