@@ -9,6 +9,7 @@ module.exports = {
                 url: `/registry/services`,
                 headers: { 'Content-Type': 'application/json' },
                 data: {
+                    serviceIdentifier: "articles-service",
                     serviceLabel: "Service Articles",
                     host: process.env.HOST,
                     port: process.env.PORT,
