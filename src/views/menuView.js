@@ -22,7 +22,7 @@ const errors = {
     })(),
     Unauthorized: (() => {
         const err = Error("Access denied");
-        err.statusCode = 401;
+        err.statusCode = 403;
         return err;
     })(),
   }
@@ -151,12 +151,10 @@ module.exports = {
         const restaurant = await Restaurant.findById(article.restaurantId);
         if(req.query.roleLabel != 'admin' && req.query.userId != restaurant.restaurantOwnerId) return errors.Unauthorized;
 
-        if(menu) {
-            await Menu.findByIdAndDelete(menuId);
-            await Article.findByIdAndDelete(menu.articleId);
-            return `menu ${menuId} deleted`;
-        }
-        else return errors.idNotFound;
+        if(!menu) return errors.idNotFound;
+        await Menu.findByIdAndDelete(menuId);
+        await Article.findByIdAndDelete(menu.articleId);
+        return `menu ${menuId} deleted`;
     },
     updateMenu: async(req, res) => {
         const { menuId } = req.params;
@@ -208,14 +206,12 @@ module.exports = {
         const restaurant = await Restaurant.findById(article.restaurantId);
         if(req.query.roleLabel != 'admin' && req.query.userId != restaurant.restaurantOwnerId) return errors.Unauthorized;
 
-        if(menu) {
-            await Menu.findOneAndUpdate({
-                _id: menuId
-            }, {
-                productIdList: productIdList
-            });
-            return `productIdList in menu ${menuId} updated`;
-        }
-        else return errors.idNotFound;
+        if(!menu) return errors.idNotFound;
+        await Menu.findOneAndUpdate({
+            _id: menuId
+        }, {
+            productIdList: productIdList
+        });
+        return `productIdList in menu ${menuId} updated`;
     }
 }

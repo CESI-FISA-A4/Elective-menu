@@ -22,7 +22,7 @@ const errors = {
     })(),
     Unauthorized: (() => {
         const err = Error("Access denied");
-        err.statusCode = 401;
+        err.statusCode = 403;
         return err;
     })(),
   }
