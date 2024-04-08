@@ -2,6 +2,7 @@ const { Article } = require("../models/Article");
 const { Menu } = require("../models/Menu");
 const { Product } = require("../models/Product");
 const { mongoose, isValidObjectId } = require("mongoose");
+const { Restaurant } = require("../models/Restaurant");
 
 const errors = {
     invalidId: (() => {
@@ -17,6 +18,11 @@ const errors = {
     idNotFound: (() => {
         const err = Error("Id not found");
         err.statusCode = 404;
+        return err;
+    })(),
+    Unauthorized: (() => {
+        const err = Error("Access denied");
+        err.statusCode = 403;
         return err;
     })(),
   }
@@ -69,6 +75,7 @@ module.exports = {
 
         let elements = [];
         const articles = await Article.find({restaurantId: restaurantId});
+        if(articles.length <= 0) return errors.idNotFound;
         for(let i = 0; i < articles.length; i++) {
             const product = await Product.findOne({articleId: articles[i].id});
             if(product) {
@@ -83,16 +90,16 @@ module.exports = {
                     allergenList: product.allergenList, 
                     ingredientList: product.ingredientList 
                 })
-                return elements;
             }
-            else return errors.idNotFound;
         }
+        return elements;
     },
     getProductByName: async(req, res) => {
         const { productName } = req.params;
 
         let elements = [];
         const articles = await Article.find({name: { '$regex' : productName, '$options' : 'i' }});
+        if(articles.length <= 0) return errors.idNotFound;
         for(let i = 0; i < articles.length; i++) {
             const product = await Product.findOne({articleId: articles[i].id});
             if(product) {
@@ -107,14 +114,15 @@ module.exports = {
                     allergenList: product.allergenList, 
                     ingredientList: product.ingredientList 
                 })
-                return elements;
             }
-            else return errors.idNotFound;
-        } 
+        }
+        return elements;
     },
     createProduct: async(req, res) => {
         const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
+        const restaurant = await Restaurant.findById(restaurantId)
+        if(req.query.roleLabel != 'admin' && req.query.userId != restaurant.restaurantOwnerId) return errors.Unauthorized;
 
         const article = await Article.create({ 
             name: name, 
@@ -134,9 +142,14 @@ module.exports = {
         const { productId } = req.params;
         if (!isValidObjectId(productId)) return errors.invalidId;
 
+        const product = await Product.findById(productId);
+        const article = await Article.findById(product.articleId);
+        const restaurant = await Restaurant.findById(article.restaurantId);
+        if(req.query.roleLabel != 'admin' && req.query.userId != restaurant.restaurantOwnerId) return errors.Unauthorized;
+
         // delete the product
-        const product = await Product.findByIdAndDelete(productId);
         if(product) {
+            await Product.findByIdAndDelete(productId);
             await Article.findByIdAndDelete(product.articleId);
         }
         else return errors.idNotFound;
@@ -147,10 +160,13 @@ module.exports = {
         return `product ${productId} deleted`;
     },
     updateProduct: async(req, res) => {
+
         const { productId } = req.params;
         const { name, price, description, restaurantId, imageUrl, allergenList, ingredientList } = req.body;
         if (!isValidObjectId(productId)) return errors.invalidId;
         if (!isValidObjectId(restaurantId)) return errors.invalidId;
+        const restaurant = await Restaurant.findById(restaurantId);
+        if(req.query.roleLabel != 'admin' && req.query.userId != restaurant.restaurantOwnerId) return errors.Unauthorized;
 
         const product = await Product.findOneAndUpdate({
             _id: productId
