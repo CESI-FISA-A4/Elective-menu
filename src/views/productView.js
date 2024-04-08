@@ -134,7 +134,7 @@ module.exports = {
         const product = await Product.create({ 
             articleId: article.id, 
             allergenList: allergenList, 
-            allergenList: ingredientList });
+            ingredientList: ingredientList });
 
         return `product ${product.id} created`;
     },
