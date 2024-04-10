@@ -167,7 +167,7 @@ module.exports = {
         for(let i = 0; i < productIdList.length; i++) {
             if (!isValidObjectId(productIdList[i])) return errors.invalidId;
             const product = await Product.exists({_id: productIdList[i]});
-            if(!product) return `${objId} doesn't exist`; 
+            if(!product) return `${productIdList[i]} doesn't exist`; 
         }
 
         const menu = await Menu.findOneAndUpdate({
@@ -175,18 +175,17 @@ module.exports = {
         }, {
             productIdList: productIdList
         });
-        if(menu) {
-            await Article.findOneAndUpdate({
-                _id: menu.articleId
-            }, {
-                name: name, 
-                price: price, 
-                description: description, 
-                restaurantId: restaurantId, 
-                imageUrl: imageUrl
-            });
-        }
-        else return idNotFound;
+        if(!menu) return errors.idNotFound;
+
+        await Article.findOneAndUpdate({
+            _id: menu.articleId
+        }, {
+            name: name, 
+            price: price, 
+            description: description, 
+            restaurantId: restaurantId, 
+            imageUrl: imageUrl
+        });
 
         return `menu ${menuId} updated`;
     },
