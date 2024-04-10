@@ -28,6 +28,9 @@ const errors = {
   }
 
 module.exports = {
+  ping: async(req,res)=>{
+    return;
+  },
     getAllMenus: async(req, res) => {
         let elements = [];
         const menus = await Menu.find();

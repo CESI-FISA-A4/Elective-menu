@@ -27,7 +27,10 @@ const errors = {
     })(),
   }
 
-module.exports = {    
+module.exports = { 
+    ping: async(req,res)=>{
+      return;
+    },   
     getAllProduct: async(req, res) => {
         let elements = [];
         const products = await Product.find();
